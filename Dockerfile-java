@@ -1,0 +1,18 @@
+
+# JAVA_VERSION example
+#   17.0.7
+#   20.0.1
+# https://www.oracle.com/java/technologies/downloads/archive/
+
+WORKDIR /usr/local
+
+ARG JAVA_URL="https://download.oracle.com/java/$JAVA_VERSION_MAJOR/archive/jdk-${JAVA_VERSION}_linux-x64_bin.tar.gz"
+RUN curl -SsfLk ${JAVA_URL} -o jdk_linux-x64_bin.tar.gz
+RUN mkdir tmp
+RUN tar xzf jdk_linux-x64_bin.tar.gz -C tmp
+RUN mv tmp/$(ls tmp) jdk
+RUN rmdir tmp
+
+ENV JAVA_HOME /usr/local/jdk
+ENV PATH $JAVA_HOME/bin:$PATH
+
