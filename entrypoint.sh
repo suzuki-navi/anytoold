@@ -25,9 +25,9 @@ usermod -aG sudo $HOST_USER
 export HOME=/home/$HOST_USER
 chown $HOST_USER $HOME
 
-# Execute sbt command or other specified command
+# Execute the specified command
 if [ -z "$command" ]; then
-    exec su $HOST_USER -c sbt
+    exit 1
 elif [ -t 1 ]; then
     exec su -P $HOST_USER -c "$command"
 else
