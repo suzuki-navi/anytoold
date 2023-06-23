@@ -1,0 +1,70 @@
+
+# PYTHON_VERSION example
+#   3.11.4
+# https://
+
+WORKDIR /usr/local
+
+# https://github.com/docker-library/python/blob/master/Dockerfile-linux.template
+
+RUN apt install -y \
+    dpkg-dev \
+    gcc \
+    gnupg \
+    libbluetooth-dev \
+    libbz2-dev \
+    libc6-dev \
+    libdb-dev \
+    libexpat1-dev \
+    libffi-dev \
+    libgdbm-dev \
+    liblzma-dev \
+    libncursesw5-dev \
+    libreadline-dev \
+    libsqlite3-dev \
+    libssl-dev \
+    make \
+    tk-dev \
+    uuid-dev \
+    wget \
+    xz-utils \
+    zlib1g-dev \
+    ;
+
+ARG PYTHON_URL="https://www.python.org/ftp/python/${PYTHON_VERSION_2}/Python-${PYTHON_VERSION}.tar.xz"
+RUN curl -SsfLk ${PYTHON_URL} -o python.tar.xz
+RUN mkdir tmp
+RUN tar Jxf python.tar.xz --strip-components=1 -C tmp
+
+WORKDIR /usr/local/tmp
+RUN cd /usr/local/tmp; \
+    gnuArch="$(dpkg-architecture --query DEB_BUILD_GNU_TYPE)"; \
+    ./configure \
+        --build="$gnuArch" \
+        --enable-loadable-sqlite-extensions \
+        --enable-optimizations \
+        --enable-option-checking=fatal \
+        --enable-shared \
+        --with-lto \
+        --with-system-expat \
+        --without-ensurepip \
+    ; \
+    nproc="$(nproc)"; \
+    EXTRA_CFLAGS="$(dpkg-buildflags --get CFLAGS)"; \
+    LDFLAGS="$(dpkg-buildflags --get LDFLAGS)"; \
+    make -j "$nproc" \
+        "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" \
+        "LDFLAGS=${LDFLAGS:-}" \
+        "PROFILE_TASK=${PROFILE_TASK:-}" \
+    ; \
+    make -j "$nproc" \
+        "EXTRA_CFLAGS=${EXTRA_CFLAGS:-}" \
+        "LDFLAGS=${LDFLAGS:--Wl},-rpath='\$\$ORIGIN/../lib'" \
+        "PROFILE_TASK=${PROFILE_TASK:-}" \
+        python \
+    ;
+RUN make install; \
+    ldconfig;
+
+# wip
+

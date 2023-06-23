@@ -8,6 +8,7 @@ function error {
 JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
+PYTHON_VERSION=${PYTHON_VERSION:-}
 
 rebuild=
 run_opts=()
@@ -40,6 +41,9 @@ fi
 if [ "$SBT_VERSION" = "*" ]; then
     SBT_VERSION=1.9.0
 fi
+if [ "$PYTHON_VERSION" = "*" ]; then
+    PYTHON_VERSION=3.11.4
+fi
 
 if [ -n "$JAVA_VERSION" ]; then
     docker_image_name="${docker_image_name}-java${JAVA_VERSION}"
@@ -49,6 +53,9 @@ if [ -n "$SCALA_VERSION" ]; then
 fi
 if [ -n "$SBT_VERSION" ]; then
     docker_image_name="${docker_image_name}-sbt${SBT_VERSION}"
+fi
+if [ -n "$PYTHON_VERSION" ]; then
+    docker_image_name="${docker_image_name}-python${PYTHON_VERSION}"
 fi
 
 # If the specified Docker image has not been built yet
@@ -72,6 +79,12 @@ if [ -n "$rebuild" ] || [ -z "$(docker images -q $docker_image_name)" ]; then
                 echo "ARG SBT_VERSION=$SBT_VERSION"
                 cat Dockerfile-sbt
             fi
+            if [ -n "$PYTHON_VERSION" ]; then
+                PYTHON_VERSION_2=${PYTHON_VERSION%%[a-z]*}
+                echo "ARG PYTHON_VERSION=$PYTHON_VERSION"
+                echo "ARG PYTHON_VERSION_2=$PYTHON_VERSION_2"
+                cat Dockerfile-python
+            fi
             echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
         ) >| var/$docker_image_name/Dockerfile
 
@@ -80,7 +93,7 @@ if [ -n "$rebuild" ] || [ -z "$(docker images -q $docker_image_name)" ]; then
         cd var/$docker_image_name/
         echo docker build -t $docker_image_name .
         docker build -t $docker_image_name .
-    )
+    ) >&2
 fi
 
 # To inherit the user ID and group ID of the host inside Docker
