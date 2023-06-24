@@ -1,0 +1,19 @@
+
+RUN pip install \
+    yq \
+    jinja2 \
+    pyyaml \
+    openpyxl \
+    flake8 \
+    twine \
+    boto3 \
+    git-remote-codecommit \
+    awslogs \
+    yamlist \
+    skwadon \
+    aws-list-subnets \
+    aws-glue-job-history \
+    ;
+
+COPY localserver.py /usr/local/
+

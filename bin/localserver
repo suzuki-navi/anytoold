@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
+
+name=$(basename $0)
+
+export PYTHON_TOOLS="*"
+
+port="$1"
+export docker_run_options="-p $port:$port"
+
+bash $ANYTOOLD_PATH/docker-run.sh python /usr/local/localserver.py "$@"
+
