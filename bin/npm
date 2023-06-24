@@ -6,5 +6,17 @@ name=$(basename $0)
 
 export NODEJS_VERSION=${NODEJS_VERSION:-"*"}
 
+export docker_run_options=""
+if [ -v PORT ]; then
+    list=(${PORT//,/ })
+    for p in "${list[@]}"; do
+        docker_run_options="$docker_run_options -p $p:$p"
+    done
+    docker_run_options="$docker_run_options -e PORT=${list[0]}"
+fi
+if [ -v HOST ]; then
+    docker_run_options="$docker_run_options -e HOST=$HOST"
+fi
+
 bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
 
