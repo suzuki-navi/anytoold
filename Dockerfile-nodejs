@@ -1,0 +1,24 @@
+
+# NODEJS_VERSION example
+#   18.16.1
+#   20.3.1
+# https://github.com/pyenv/pyenv/tree/master/plugins/python-build/share/python-build
+
+# https://github.com/nodejs/docker-node/blob/main/Dockerfile-debian.template
+
+RUN apt install -y xz-utils
+
+ARG NODEJS_URL="https://nodejs.org/dist/v$NODEJS_VERSION/node-v$NODEJS_VERSION-linux-x64.tar.xz"
+
+WORKDIR /usr/local
+
+RUN curl -SsfLk ${NODEJS_URL} -o nodejs-linux-x64.tar.xz
+
+RUN mkdir /usr/local/nodejs
+
+RUN tar -xJf nodejs-linux-x64.tar.xz -C /usr/local/nodejs --strip-components=1
+
+RUN ln -s /usr/local/nodejs/bin/node /usr/local/nodejs/bin/nodejs
+
+ENV PATH /usr/local/nodejs/bin:$PATH
+

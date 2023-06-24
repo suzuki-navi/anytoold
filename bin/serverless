@@ -1,0 +1,10 @@
+#!/bin/bash
+
+ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
+
+name=$(basename $0)
+
+export NODEJS_TOOLS=${NODEJS_TOOLS:-"*"}
+
+bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
+

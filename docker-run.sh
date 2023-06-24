@@ -9,6 +9,8 @@ PYTHON_VERSION=${PYTHON_VERSION:-}
 PYTHON_TOOLS=${PYTHON_TOOLS:-}
 RUBY_VERSION=${RUBY_VERSION:-}
 RUBY_TOOLS=${RUBY_TOOLS:-}
+NODEJS_VERSION=${NODEJS_VERSION:-}
+NODEJS_TOOLS=${NODEJS_TOOLS:-}
 JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
@@ -34,6 +36,9 @@ fi
 if [ -z "$RUBY_VERSION" ] && [ -n "$RUBY_TOOLS" ]; then
     RUBY_VERSION="*"
 fi
+if [ -z "$NODEJS_VERSION" ] && [ -n "$NODEJS_TOOLS" ]; then
+    NODEJS_VERSION="*"
+fi
 if [ -z "$JAVA_VERSION" ] && [ -n "$SBT_VERSION" ]; then
     JAVA_VERSION="*"
 fi
@@ -46,6 +51,9 @@ if [ "$PYTHON_VERSION" = "*" ]; then
 fi
 if [ "$RUBY_VERSION" = "*" ]; then
     RUBY_VERSION=3.2.2
+fi
+if [ "$NODEJS_VERSION" = "*" ]; then
+    NODEJS_VERSION=20.3.1
 fi
 if [ "$JAVA_VERSION" = "*" ]; then
     JAVA_VERSION=17.0.7
@@ -68,6 +76,12 @@ if [ -n "$RUBY_VERSION" ]; then
 fi
 if [ -n "$RUBY_TOOLS" ]; then
     docker_image_name="${docker_image_name}-ruby-tools"
+fi
+if [ -n "$NODEJS_VERSION" ]; then
+    docker_image_name="${docker_image_name}-nodejs-${NODEJS_VERSION}"
+fi
+if [ -n "$NODEJS_TOOLS" ]; then
+    docker_image_name="${docker_image_name}-nodejs-tools"
 fi
 if [ -n "$JAVA_VERSION" ]; then
     docker_image_name="${docker_image_name}-java-${JAVA_VERSION}"
@@ -101,6 +115,7 @@ fi
             cp etc/localserver.py var/$docker_image_name/
             cat Dockerfile-python-tools
         fi
+
         if [ -n "$RUBY_VERSION" ]; then
             echo "ARG RUBY_VERSION=$RUBY_VERSION"
             cat Dockerfile-ruby
@@ -108,6 +123,15 @@ fi
 
         if [ -n "$RUBY_TOOLS" ]; then
             cat Dockerfile-ruby-tools
+        fi
+
+        if [ -n "$NODEJS_VERSION" ]; then
+            echo "ARG NODEJS_VERSION=$NODEJS_VERSION"
+            cat Dockerfile-nodejs
+        fi
+
+        if [ -n "$NODEJS_TOOLS" ]; then
+            cat Dockerfile-nodejs-tools
         fi
 
         if [ -n "$JAVA_VERSION" ]; then
