@@ -5,11 +5,13 @@ function error {
   exit 1
 }
 
+PYTHON_VERSION=${PYTHON_VERSION:-}
+PYTHON_TOOLS=${PYTHON_TOOLS:-}
+RUBY_VERSION=${RUBY_VERSION:-}
+RUBY_TOOLS=${RUBY_TOOLS:-}
 JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
-PYTHON_VERSION=${PYTHON_VERSION:-}
-PYTHON_TOOLS=${PYTHON_TOOLS:-}
 
 rebuild=
 run_opts=()
@@ -29,6 +31,9 @@ docker_image_name=anytoold
 if [ -z "$PYTHON_VERSION" ] && [ -n "$PYTHON_TOOLS" ]; then
     PYTHON_VERSION="*"
 fi
+if [ -z "$RUBY_VERSION" ] && [ -n "$RUBY_TOOLS" ]; then
+    RUBY_VERSION="*"
+fi
 if [ -z "$JAVA_VERSION" ] && [ -n "$SBT_VERSION" ]; then
     JAVA_VERSION="*"
 fi
@@ -36,6 +41,12 @@ if [ -z "$JAVA_VERSION" ] && [ -n "$SCALA_VERSION" ]; then
     JAVA_VERSION="*"
 fi
 
+if [ "$PYTHON_VERSION" = "*" ]; then
+    PYTHON_VERSION=3.11.4
+fi
+if [ "$RUBY_VERSION" = "*" ]; then
+    RUBY_VERSION=3.2.2
+fi
 if [ "$JAVA_VERSION" = "*" ]; then
     JAVA_VERSION=17.0.7
 fi
@@ -45,15 +56,18 @@ fi
 if [ "$SBT_VERSION" = "*" ]; then
     SBT_VERSION=1.9.0
 fi
-if [ "$PYTHON_VERSION" = "*" ]; then
-    PYTHON_VERSION=3.11.4
-fi
 
 if [ -n "$PYTHON_VERSION" ]; then
     docker_image_name="${docker_image_name}-python-${PYTHON_VERSION}"
 fi
 if [ -n "$PYTHON_TOOLS" ]; then
     docker_image_name="${docker_image_name}-python-tools"
+fi
+if [ -n "$RUBY_VERSION" ]; then
+    docker_image_name="${docker_image_name}-ruby-${RUBY_VERSION}"
+fi
+if [ -n "$RUBY_TOOLS" ]; then
+    docker_image_name="${docker_image_name}-ruby-tools"
 fi
 if [ -n "$JAVA_VERSION" ]; then
     docker_image_name="${docker_image_name}-java-${JAVA_VERSION}"
@@ -73,16 +87,29 @@ fi
 
     (
         cat Dockerfile
+        if [ -n "$PYTHON_VERSION" ] || [ -n "$RUBY_VERSION" ]; then
+            cat Dockerfile-common
+        fi
         if [ -n "$PYTHON_VERSION" ]; then
             PYTHON_VERSION_2=${PYTHON_VERSION%%[a-z]*}
             echo "ARG PYTHON_VERSION=$PYTHON_VERSION"
             echo "ARG PYTHON_VERSION_2=$PYTHON_VERSION_2"
             cat Dockerfile-python
         fi
+
         if [ -n "$PYTHON_TOOLS" ]; then
             cp etc/localserver.py var/$docker_image_name/
             cat Dockerfile-python-tools
         fi
+        if [ -n "$RUBY_VERSION" ]; then
+            echo "ARG RUBY_VERSION=$RUBY_VERSION"
+            cat Dockerfile-ruby
+        fi
+
+        if [ -n "$RUBY_TOOLS" ]; then
+            cat Dockerfile-ruby-tools
+        fi
+
         if [ -n "$JAVA_VERSION" ]; then
             JAVA_VERSION_MAJOR=${JAVA_VERSION%%.*}
             echo "ARG JAVA_VERSION=$JAVA_VERSION"
@@ -97,6 +124,7 @@ fi
             echo "ARG SBT_VERSION=$SBT_VERSION"
             cat Dockerfile-sbt
         fi
+
         echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
     ) >| var/$docker_image_name/Dockerfile
 

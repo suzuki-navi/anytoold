@@ -1,0 +1,17 @@
+
+RUN apt install -y \
+    git \
+    gcc \
+    make \
+    pkg-config \
+    zlib1g-dev \
+    libffi-dev \
+    libssl-dev \
+    libsqlite3-dev \
+    libbz2-dev \
+    libncurses5-dev \
+    libreadline-dev \
+    liblzma-dev \
+    libyaml-dev \
+    ;
+

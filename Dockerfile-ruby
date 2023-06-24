@@ -1,0 +1,16 @@
+
+# RUBY_VERSION example
+#   3.2.2
+# https://github.com/rbenv/ruby-build/tree/master/share/ruby-build
+
+WORKDIR /usr/local
+
+ENV RBENV_ROOT /usr/local/rbenv
+
+RUN git clone https://github.com/rbenv/rbenv.git $RBENV_ROOT
+RUN git clone https://github.com/rbenv/ruby-build.git $RBENV_ROOT/plugins/ruby-build
+
+# I don't want to use rbenv, but only ability to install any version of Ruby.
+RUN $RBENV_ROOT/bin/rbenv install -s -v $RUBY_VERSION
+
+ENV PATH $RBENV_ROOT/versions/$RUBY_VERSION/bin:$PATH
