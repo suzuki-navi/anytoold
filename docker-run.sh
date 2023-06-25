@@ -14,6 +14,7 @@ NODEJS_TOOLS=${NODEJS_TOOLS:-}
 JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
+TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
 
 rebuild=
 run_opts=()
@@ -64,6 +65,9 @@ fi
 if [ "$SBT_VERSION" = "*" ]; then
     SBT_VERSION=1.9.0
 fi
+if [ "$TERRAFORM_VERSION" = "*" ]; then
+    TERRAFORM_VERSION=1.5.1
+fi
 
 if [ -n "$PYTHON_VERSION" ]; then
     docker_image_name="${docker_image_name}-python-${PYTHON_VERSION}"
@@ -92,6 +96,9 @@ fi
 if [ -n "$SBT_VERSION" ]; then
     docker_image_name="${docker_image_name}-sbt-${SBT_VERSION}"
 fi
+if [ -n "$TERRAFORM_VERSION" ]; then
+    docker_image_name="${docker_image_name}-terraform-${TERRAFORM_VERSION}"
+fi
 
 # If the specified Docker image has not been built yet
 (
@@ -101,7 +108,7 @@ fi
 
     (
         cat Dockerfile
-        if [ -n "$PYTHON_VERSION" ] || [ -n "$RUBY_VERSION" ]; then
+        if [ -n "$PYTHON_VERSION" ] || [ -n "$RUBY_VERSION" ] || [ -n "$TERRAFORM_VERSION" ]; then
             cat Dockerfile-common
         fi
         if [ -n "$PYTHON_VERSION" ]; then
@@ -149,6 +156,11 @@ fi
             cat Dockerfile-sbt
         fi
 
+        if [ -n "$TERRAFORM_VERSION" ]; then
+            echo "ARG TERRAFORM_VERSION=$TERRAFORM_VERSION"
+            cat Dockerfile-terraform-tools
+        fi
+
         echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
     ) >| var/$docker_image_name/Dockerfile
 
@@ -187,7 +199,7 @@ docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
 
-if [ -n "$PYTHON_TOOLS" ]; then
+if [ -n "$PYTHON_TOOLS" ] || [ -n "$TERRAFORM_VERSION" ]; then
     docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
     docker_run_options="$docker_run_options -e OPENAI_API_KEY"
 fi

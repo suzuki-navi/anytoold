@@ -1,0 +1,13 @@
+
+# PYTHON_VERSION example
+#   1.5.1
+# https://github.com/hashicorp/terraform/releases
+
+WORKDIR /usr/local
+
+RUN git clone https://github.com/tfutils/tfenv.git tfenv
+
+RUN /usr/local/tfenv/bin/tfenv install $TERRAFORM_VERSION
+
+ENV PATH /usr/local/tfenv/versions/$TERRAFORM_VERSION:$PATH
+

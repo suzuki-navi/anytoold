@@ -22,3 +22,5 @@ RUN ln -s /usr/local/nodejs/bin/node /usr/local/nodejs/bin/nodejs
 
 ENV PATH /usr/local/nodejs/bin:$PATH
 
+RUN npm update -g npm
+
