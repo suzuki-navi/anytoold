@@ -204,6 +204,11 @@ if [ -n "$PYTHON_TOOLS" ] || [ -n "$TERRAFORM_VERSION" ]; then
     docker_run_options="$docker_run_options -e OPENAI_API_KEY"
 fi
 
+if [ -n "$PYTHON_VERSION" ]; then
+    mkdir -p .venv/.anytoold
+    docker_run_options="$docker_run_options -v $(pwd)/.venv/.anytoold:$HOME/.local"
+fi
+
 # directory for persistant sbt cache
 if [ -n "$SBT_VERSION" ]; then
     mkdir -p .sbt-docker-cache/.sbt
