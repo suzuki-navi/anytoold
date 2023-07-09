@@ -217,6 +217,8 @@ docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
 
+docker_run_options="$docker_run_options -v /var/run/docker.sock:/var/run/docker.sock"
+
 if [ -n "$PYTHON_TOOLS" ]; then
     docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
     docker_run_options="$docker_run_options -e OPENAI_API_KEY"
