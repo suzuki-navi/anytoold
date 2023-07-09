@@ -15,6 +15,7 @@ JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
+AWSCLI_VERSION=${AWSCLI_VERSION:-}
 
 rebuild=
 run_opts=()
@@ -71,6 +72,10 @@ fi
 if [ "$TERRAFORM_VERSION" = "*" ]; then
     TERRAFORM_VERSION=1.5.1
 fi
+if [ "$AWSCLI_VERSION" = "*" ]; then
+    # https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst
+    AWSCLI_VERSION=2.13.0
+fi
 
 if [ -n "$PYTHON_VERSION" ]; then
     docker_image_name="${docker_image_name}-python-${PYTHON_VERSION}"
@@ -101,6 +106,9 @@ if [ -n "$SBT_VERSION" ]; then
 fi
 if [ -n "$TERRAFORM_VERSION" ]; then
     docker_image_name="${docker_image_name}-terraform-${TERRAFORM_VERSION}"
+fi
+if [ -n "$AWSCLI_VERSION" ]; then
+    docker_image_name="${docker_image_name}-awscli-${AWSCLI_VERSION}"
 fi
 
 # If the specified Docker image has not been built yet
@@ -164,6 +172,11 @@ fi
             cat Dockerfile-terraform-tools
         fi
 
+        if [ -n "$AWSCLI_VERSION" ]; then
+            echo "ARG AWSCLI_VERSION=$AWSCLI_VERSION"
+            cat Dockerfile-awscli
+        fi
+
         echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
     ) >| var/$docker_image_name/Dockerfile
 
@@ -204,9 +217,17 @@ docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
 
-if [ -n "$PYTHON_TOOLS" ] || [ -n "$TERRAFORM_VERSION" ]; then
+if [ -n "$PYTHON_TOOLS" ]; then
     docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
     docker_run_options="$docker_run_options -e OPENAI_API_KEY"
+fi
+
+if [ -n "$TERRAFORM_VERSION" ]; then
+    docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+fi
+
+if [ -n "$AWSCLI_VERSION" ]; then
+    docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
 fi
 
 project_home=$(
