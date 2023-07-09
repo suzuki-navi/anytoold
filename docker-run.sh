@@ -204,16 +204,29 @@ if [ -n "$PYTHON_TOOLS" ] || [ -n "$TERRAFORM_VERSION" ]; then
     docker_run_options="$docker_run_options -e OPENAI_API_KEY"
 fi
 
-if [ -n "$PYTHON_VERSION" ]; then
-    mkdir -p .venv/.anytoold
-    docker_run_options="$docker_run_options -v $(pwd)/.venv/.anytoold:$HOME/.local"
-fi
+project_home=$(
+    bash $(dirname $0)/search-project-home-dir.sh
+)
 
-# directory for persistant sbt cache
-if [ -n "$SBT_VERSION" ]; then
-    mkdir -p .sbt-docker-cache/.sbt
-    mkdir -p .sbt-docker-cache/.cache
-    docker_run_options="$docker_run_options -v $(pwd)/.sbt-docker-cache/.sbt:$HOME/.sbt -v $(pwd)/.sbt-docker-cache/.cache:$HOME/.cache"
+if [ -n "$project_home" ]; then
+    # for npx
+    if [ -n "$NODEJS_VERSION" ]; then
+        mkdir -p $project_home/.npm/.anytoold
+        docker_run_options="$docker_run_options -v $project_home/.npm/.anytoold:$HOME/.npm"
+    fi
+
+    if [ -n "$PYTHON_VERSION" ]; then
+        mkdir -p $project_home/.venv/.anytoold
+        docker_run_options="$docker_run_options -v $project_home/.venv/.anytoold:$HOME/.local"
+    fi
+
+    # directory for persistant sbt cache
+    if [ -n "$SBT_VERSION" ]; then
+        mkdir -p $project_home/.sbt-docker-cache/.sbt
+        mkdir -p $project_home.sbt-docker-cache/.cache
+        docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.sbt:$HOME/.sbt"
+        docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.cache:$HOME/.cache"
+    fi
 fi
 
 docker run --rm $docker_run_options $docker_image_name bash /usr/local/entrypoint.sh "$@"
