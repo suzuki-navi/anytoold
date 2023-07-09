@@ -48,13 +48,16 @@ if [ -z "$JAVA_VERSION" ] && [ -n "$SCALA_VERSION" ]; then
 fi
 
 if [ "$PYTHON_VERSION" = "*" ]; then
+    # https://github.com/pyenv/pyenv/tree/master/plugins/python-build/share/python-build
     PYTHON_VERSION=3.11.4
 fi
 if [ "$RUBY_VERSION" = "*" ]; then
+    # https://github.com/rbenv/ruby-build/tree/master/share/ruby-build
     RUBY_VERSION=3.2.2
 fi
 if [ "$NODEJS_VERSION" = "*" ]; then
-    NODEJS_VERSION=20.3.1
+    # https://nodejs.org/en/download/releases
+    NODEJS_VERSION=20.4.0
 fi
 if [ "$JAVA_VERSION" = "*" ]; then
     JAVA_VERSION=17.0.7
@@ -178,6 +181,8 @@ fi
             docker build -t $docker_image_name .
         )
         mv var/$docker_image_name.hash.new var/$docker_image_name.hash
+    else
+        rm var/$docker_image_name.hash.new
     fi
 ) >&2
 

@@ -2,7 +2,6 @@
 # PYTHON_VERSION example
 #   3.10.9
 #   3.11.4
-# https://github.com/pyenv/pyenv/tree/master/plugins/python-build/share/python-build
 
 WORKDIR /usr/local
 

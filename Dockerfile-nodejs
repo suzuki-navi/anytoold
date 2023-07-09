@@ -2,8 +2,6 @@
 # NODEJS_VERSION example
 #   18.16.1
 #   20.3.1
-# https://github.com/pyenv/pyenv/tree/master/plugins/python-build/share/python-build
-
 # https://github.com/nodejs/docker-node/blob/main/Dockerfile-debian.template
 
 RUN apt install -y xz-utils
