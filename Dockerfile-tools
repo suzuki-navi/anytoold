@@ -1,3 +1,3 @@
 
-RUN apt install -y docker docker.io docker-compose
+RUN apt install -y docker docker.io docker-compose jq
 

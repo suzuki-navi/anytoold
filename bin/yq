@@ -1,0 +1,11 @@
+#!/bin/bash
+
+ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
+
+name=$(basename $0)
+
+export COMMON_TOOLS=${COMMON_TOOLS:-"*"}
+export PYTHON_TOOLS=${PYTHON_TOOLS:-"*"}
+
+bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
+
