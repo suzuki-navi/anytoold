@@ -16,6 +16,7 @@ SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
 AWSCLI_VERSION=${AWSCLI_VERSION:-}
+COMMON_TOOLS=${COMMON_TOOLS:-}
 
 rebuild=
 run_opts=()
@@ -110,6 +111,9 @@ fi
 if [ -n "$AWSCLI_VERSION" ]; then
     docker_image_name="${docker_image_name}-awscli-${AWSCLI_VERSION}"
 fi
+if [ -n "$COMMON_TOOLS" ]; then
+    docker_image_name="${docker_image_name}-common-tools"
+fi
 
 # If the specified Docker image has not been built yet
 (
@@ -120,7 +124,7 @@ fi
     (
         cat Dockerfile
         if [ -n "$PYTHON_VERSION" ] || [ -n "$RUBY_VERSION" ] || [ -n "$TERRAFORM_VERSION" ]; then
-            cat Dockerfile-common
+            cat Dockerfile-build-common
         fi
         if [ -n "$PYTHON_VERSION" ]; then
             PYTHON_VERSION_2=${PYTHON_VERSION%%[a-z]*}
@@ -177,6 +181,10 @@ fi
             cat Dockerfile-awscli
         fi
 
+        if [ -n "$COMMON_TOOLS" ]; then
+            cat Dockerfile-tools
+        fi
+
         echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
     ) >| var/$docker_image_name/Dockerfile
 
@@ -212,7 +220,9 @@ fi
 
 docker_run_options=${docker_run_options:-}
 
-docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
+if [ -n "$COMMON_TOOLS" ]; then
+    docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
+fi
 
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
