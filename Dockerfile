@@ -1,4 +1,5 @@
-FROM debian:bullseye
+#FROM debian:bullseye
+FROM debian:12.0
 
 ENV LANG C.UTF-8
 

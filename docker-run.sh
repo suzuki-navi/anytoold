@@ -16,6 +16,7 @@ SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
 AWSCLI_VERSION=${AWSCLI_VERSION:-}
+DOCKER_VERSION=${DOCKER_VERSION:-}
 COMMON_TOOLS=${COMMON_TOOLS:-}
 EMACS_VERSION=${EMACS_VERSION:-}
 
@@ -114,6 +115,9 @@ fi
 if [ -n "$AWSCLI_VERSION" ]; then
     docker_image_name="${docker_image_name}-awscli-${AWSCLI_VERSION}"
 fi
+if [ -n "$DOCKER_VERSION" ]; then
+    docker_image_name="${docker_image_name}-docker"
+fi
 if [ -n "$COMMON_TOOLS" ]; then
     docker_image_name="${docker_image_name}-common-tools"
 fi
@@ -187,6 +191,10 @@ fi
             cat Dockerfile-awscli
         fi
 
+        if [ -n "$DOCKER_VERSION" ]; then
+            cat Dockerfile-docker
+        fi
+
         if [ -n "$COMMON_TOOLS" ]; then
             cat Dockerfile-tools
         fi
@@ -235,7 +243,7 @@ docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
 
-if [ -n "$COMMON_TOOLS" ]; then
+if [ -n "$DOCKER_VERSION" ]; then
     docker_run_options="$docker_run_options -v /var/run/docker.sock:/var/run/docker.sock"
 fi
 

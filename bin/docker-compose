@@ -2,9 +2,9 @@
 
 ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
 
-name=$(basename $0)
+name="docker compose"
 
-export COMMON_TOOLS="*"
+export DOCKER_VERSION="*"
 
 bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
 
