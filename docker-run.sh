@@ -17,13 +17,16 @@ SBT_VERSION=${SBT_VERSION:-}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
 AWSCLI_VERSION=${AWSCLI_VERSION:-}
 COMMON_TOOLS=${COMMON_TOOLS:-}
+EMACS_VERSION=${EMACS_VERSION:-}
 
 rebuild=
+verbose=
 run_opts=()
 
 while [ "$#" != 0 ]; do
     case $1 in
         --rebuild ) rebuild=1;;
+        -v        ) verbose=1;;
         --        ) shift; run_opts+=($@); break;;
         -* | --*  ) error "$1 : Illegal option" ;;
         *         ) run_opts+=($@); break;;
@@ -114,6 +117,9 @@ fi
 if [ -n "$COMMON_TOOLS" ]; then
     docker_image_name="${docker_image_name}-common-tools"
 fi
+if [ -n "$EMACS_VERSION" ]; then
+    docker_image_name="${docker_image_name}-emacs"
+fi
 
 # If the specified Docker image has not been built yet
 (
@@ -185,6 +191,10 @@ fi
             cat Dockerfile-tools
         fi
 
+        if [ -n "$EMACS_VERSION" ]; then
+            cat Dockerfile-emacs
+        fi
+
         echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
     ) >| var/$docker_image_name/Dockerfile
 
@@ -220,26 +230,41 @@ fi
 
 docker_run_options=${docker_run_options:-}
 
-if [ -n "$COMMON_TOOLS" ]; then
-    docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
-fi
+docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
 
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
 
-docker_run_options="$docker_run_options -v /var/run/docker.sock:/var/run/docker.sock"
+if [ -n "$COMMON_TOOLS" ]; then
+    docker_run_options="$docker_run_options -v /var/run/docker.sock:/var/run/docker.sock"
+fi
 
 if [ -n "$PYTHON_TOOLS" ]; then
-    docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+    if [ -e $HOME/.aws ]; then
+        docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+    fi
     docker_run_options="$docker_run_options -e OPENAI_API_KEY"
 fi
 
 if [ -n "$TERRAFORM_VERSION" ]; then
-    docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+    if [ -e $HOME/.aws ]; then
+        docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+    fi
 fi
 
 if [ -n "$AWSCLI_VERSION" ]; then
-    docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+    if [ -e $HOME/.aws ]; then
+        docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+    fi
+fi
+
+if [ -n "$EMACS_VERSION" ]; then
+    if [ -e $HOME/.emacs ]; then
+        docker_run_options="$docker_run_options -v $HOME/.emacs:$HOME/.emacs"
+    fi
+    if [ -e $HOME/.emacs.d ]; then
+        docker_run_options="$docker_run_options -v $HOME/.emacs.d:$HOME/.emacs.d"
+    fi
 fi
 
 project_home=$(
@@ -265,6 +290,10 @@ if [ -n "$project_home" ]; then
         docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.sbt:$HOME/.sbt"
         docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.cache:$HOME/.cache"
     fi
+fi
+
+if [ -n "$verbose" ]; then
+    echo docker run --rm $docker_run_options $docker_image_name bash /usr/local/entrypoint.sh "$@"
 fi
 
 docker run --rm $docker_run_options $docker_image_name bash /usr/local/entrypoint.sh "$@"
