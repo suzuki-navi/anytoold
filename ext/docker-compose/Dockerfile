@@ -1,5 +1,6 @@
 
 # https://docs.docker.com/engine/install/debian/
+
 RUN apt install -y ca-certificates curl gnupg
 
 RUN install -m 0755 -d /etc/apt/keyrings
@@ -10,7 +11,5 @@ RUN echo "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/d
 
 RUN apt update
 
-#RUN apt install -y docker docker.io
 RUN apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
 

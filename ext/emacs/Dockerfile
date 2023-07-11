@@ -2,5 +2,5 @@
 ENV LANG=en_US.UTF-8
 # これがないと日本語が表示できない
 
-RUN apt update && apt upgrade -y && apt install -y locales-all emacs-nox
+RUN apt install -y locales-all emacs-nox
 

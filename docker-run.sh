@@ -12,9 +12,6 @@ JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
-AWSCLI_VERSION=${AWSCLI_VERSION:-}
-DOCKER_VERSION=${DOCKER_VERSION:-}
-EMACS_VERSION=${EMACS_VERSION:-}
 
 ANYTOOLD_EXTDIR=${ANYTOOLD_EXTDIR:-}
 
@@ -66,10 +63,6 @@ fi
 if [ "$TERRAFORM_VERSION" = "*" ]; then
     TERRAFORM_VERSION=1.5.1
 fi
-if [ "$AWSCLI_VERSION" = "*" ]; then
-    # https://raw.githubusercontent.com/aws/aws-cli/v2/CHANGELOG.rst
-    AWSCLI_VERSION=2.13.0
-fi
 
 if [ -n "$PYTHON_VERSION" ]; then
     docker_image_name="${docker_image_name}-python-${PYTHON_VERSION}"
@@ -91,15 +84,6 @@ if [ -n "$SBT_VERSION" ]; then
 fi
 if [ -n "$TERRAFORM_VERSION" ]; then
     docker_image_name="${docker_image_name}-terraform-${TERRAFORM_VERSION}"
-fi
-if [ -n "$AWSCLI_VERSION" ]; then
-    docker_image_name="${docker_image_name}-awscli-${AWSCLI_VERSION}"
-fi
-if [ -n "$DOCKER_VERSION" ]; then
-    docker_image_name="${docker_image_name}-docker"
-fi
-if [ -n "$EMACS_VERSION" ]; then
-    docker_image_name="${docker_image_name}-emacs"
 fi
 if [ -n "$ANYTOOLD_EXTDIR" ]; then
     docker_image_name="${docker_image_name}-$(basename $ANYTOOLD_EXTDIR)"
@@ -149,20 +133,7 @@ fi
 
         if [ -n "$TERRAFORM_VERSION" ]; then
             echo "ARG TERRAFORM_VERSION=$TERRAFORM_VERSION"
-            cat Dockerfile-terraform-tools
-        fi
-
-        if [ -n "$AWSCLI_VERSION" ]; then
-            echo "ARG AWSCLI_VERSION=$AWSCLI_VERSION"
-            cat Dockerfile-awscli
-        fi
-
-        if [ -n "$DOCKER_VERSION" ]; then
-            cat Dockerfile-docker
-        fi
-
-        if [ -n "$EMACS_VERSION" ]; then
-            cat Dockerfile-emacs
+            cat Dockerfile-terraform
         fi
 
         if [ -n "$ANYTOOLD_EXTDIR" ]; then
@@ -220,34 +191,9 @@ docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
 docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
 
-if [ -n "$DOCKER_VERSION" ]; then
-    docker_run_options="$docker_run_options -v /var/run/docker.sock:/var/run/docker.sock"
-fi
-
 if [ -n "$TERRAFORM_VERSION" ]; then
     if [ -e $HOME/.aws ]; then
         docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
-    fi
-fi
-
-if [ -n "$AWSCLI_VERSION" ]; then
-    if [ -e $HOME/.aws ]; then
-        docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
-    fi
-fi
-
-if [ -n "$EMACS_VERSION" ]; then
-    if [ -e $HOME/.emacs ]; then
-        docker_run_options="$docker_run_options -v $HOME/.emacs:$HOME/.emacs"
-    fi
-    if [ -e $HOME/.emacs.d ]; then
-        docker_run_options="$docker_run_options -v $HOME/.emacs.d:$HOME/.emacs.d"
-    fi
-fi
-
-if [ -n "$ANYTOOLD_EXTDIR" ]; then
-    if [ -e $ANYTOOLD_EXTDIR/run-options.sh ]; then
-        . $ANYTOOLD_EXTDIR/run-options.sh
     fi
 fi
 
@@ -273,6 +219,12 @@ if [ -n "$project_home" ]; then
         mkdir -p $project_home.sbt-docker-cache/.cache
         docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.sbt:$HOME/.sbt"
         docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.cache:$HOME/.cache"
+    fi
+fi
+
+if [ -n "$ANYTOOLD_EXTDIR" ]; then
+    if [ -e $ANYTOOLD_EXTDIR/run-options.sh ]; then
+        . $ANYTOOLD_EXTDIR/run-options.sh
     fi
 fi
 

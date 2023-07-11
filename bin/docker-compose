@@ -2,9 +2,10 @@
 
 ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
 
-name="docker compose"
+name1="docker-compose"
+name2="docker compose"
 
-export DOCKER_VERSION="*"
+export ANYTOOLD_EXTDIR=$(cd $(dirname $0)/../ext/$name1; pwd)
 
-bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
+bash $ANYTOOLD_PATH/docker-run.sh $name2 "$@"
 
