@@ -6,19 +6,17 @@ function error {
 }
 
 PYTHON_VERSION=${PYTHON_VERSION:-}
-PYTHON_TOOLS=${PYTHON_TOOLS:-}
 RUBY_VERSION=${RUBY_VERSION:-}
-RUBY_TOOLS=${RUBY_TOOLS:-}
 NODEJS_VERSION=${NODEJS_VERSION:-}
-NODEJS_TOOLS=${NODEJS_TOOLS:-}
 JAVA_VERSION=${JAVA_VERSION:-}
 SCALA_VERSION=${SCALA_VERSION:-}
 SBT_VERSION=${SBT_VERSION:-}
 TERRAFORM_VERSION=${TERRAFORM_VERSION:-}
 AWSCLI_VERSION=${AWSCLI_VERSION:-}
 DOCKER_VERSION=${DOCKER_VERSION:-}
-COMMON_TOOLS=${COMMON_TOOLS:-}
 EMACS_VERSION=${EMACS_VERSION:-}
+
+ANYTOOLD_EXTDIR=${ANYTOOLD_EXTDIR:-}
 
 rebuild=
 verbose=
@@ -37,15 +35,6 @@ done
 
 docker_image_name=anytoold
 
-if [ -z "$PYTHON_VERSION" ] && [ -n "$PYTHON_TOOLS" ]; then
-    PYTHON_VERSION="*"
-fi
-if [ -z "$RUBY_VERSION" ] && [ -n "$RUBY_TOOLS" ]; then
-    RUBY_VERSION="*"
-fi
-if [ -z "$NODEJS_VERSION" ] && [ -n "$NODEJS_TOOLS" ]; then
-    NODEJS_VERSION="*"
-fi
 if [ -z "$JAVA_VERSION" ] && [ -n "$SBT_VERSION" ]; then
     JAVA_VERSION="*"
 fi
@@ -85,20 +74,11 @@ fi
 if [ -n "$PYTHON_VERSION" ]; then
     docker_image_name="${docker_image_name}-python-${PYTHON_VERSION}"
 fi
-if [ -n "$PYTHON_TOOLS" ]; then
-    docker_image_name="${docker_image_name}-python-tools"
-fi
 if [ -n "$RUBY_VERSION" ]; then
     docker_image_name="${docker_image_name}-ruby-${RUBY_VERSION}"
 fi
-if [ -n "$RUBY_TOOLS" ]; then
-    docker_image_name="${docker_image_name}-ruby-tools"
-fi
 if [ -n "$NODEJS_VERSION" ]; then
     docker_image_name="${docker_image_name}-nodejs-${NODEJS_VERSION}"
-fi
-if [ -n "$NODEJS_TOOLS" ]; then
-    docker_image_name="${docker_image_name}-nodejs-tools"
 fi
 if [ -n "$JAVA_VERSION" ]; then
     docker_image_name="${docker_image_name}-java-${JAVA_VERSION}"
@@ -118,14 +98,13 @@ fi
 if [ -n "$DOCKER_VERSION" ]; then
     docker_image_name="${docker_image_name}-docker"
 fi
-if [ -n "$COMMON_TOOLS" ]; then
-    docker_image_name="${docker_image_name}-common-tools"
-fi
 if [ -n "$EMACS_VERSION" ]; then
     docker_image_name="${docker_image_name}-emacs"
 fi
+if [ -n "$ANYTOOLD_EXTDIR" ]; then
+    docker_image_name="${docker_image_name}-$(basename $ANYTOOLD_EXTDIR)"
+fi
 
-# If the specified Docker image has not been built yet
 (
     cd $(dirname $0)
 
@@ -143,27 +122,14 @@ fi
             cat Dockerfile-python
         fi
 
-        if [ -n "$PYTHON_TOOLS" ]; then
-            cp etc/localserver.py var/$docker_image_name/
-            cat Dockerfile-python-tools
-        fi
-
         if [ -n "$RUBY_VERSION" ]; then
             echo "ARG RUBY_VERSION=$RUBY_VERSION"
             cat Dockerfile-ruby
         fi
 
-        if [ -n "$RUBY_TOOLS" ]; then
-            cat Dockerfile-ruby-tools
-        fi
-
         if [ -n "$NODEJS_VERSION" ]; then
             echo "ARG NODEJS_VERSION=$NODEJS_VERSION"
             cat Dockerfile-nodejs
-        fi
-
-        if [ -n "$NODEJS_TOOLS" ]; then
-            cat Dockerfile-nodejs-tools
         fi
 
         if [ -n "$JAVA_VERSION" ]; then
@@ -195,12 +161,14 @@ fi
             cat Dockerfile-docker
         fi
 
-        if [ -n "$COMMON_TOOLS" ]; then
-            cat Dockerfile-tools
-        fi
-
         if [ -n "$EMACS_VERSION" ]; then
             cat Dockerfile-emacs
+        fi
+
+        if [ -n "$ANYTOOLD_EXTDIR" ]; then
+            if [ -e $ANYTOOLD_EXTDIR/Dockerfile ]; then
+                cat $ANYTOOLD_EXTDIR/Dockerfile
+            fi
         fi
 
         echo "COPY entrypoint.sh /usr/local/entrypoint.sh"
@@ -208,11 +176,20 @@ fi
 
     cp entrypoint.sh var/$docker_image_name/
 
+    if [ -n "$ANYTOOLD_EXTDIR" ]; then
+        for f in $(ls $ANYTOOLD_EXTDIR/* | grep -v Dockerfile); do
+            if ! diff $f var/$docker_image_name/ >/dev/null; then
+                cp $f var/$docker_image_name/
+            fi
+        done
+    fi
+
     (
         cd var/$docker_image_name/
         cat $(ls) | sha256sum | cut -b-64
     ) >| var/$docker_image_name.hash.new
 
+    # If the specified Docker image has not been built yet
     if [ -z "$(docker images -q $docker_image_name)" ] || [ ! -e var/$docker_image_name.hash ] || ! diff var/$docker_image_name.hash var/$docker_image_name.hash.new >/dev/null; then
         (
             cd var/$docker_image_name/
@@ -247,13 +224,6 @@ if [ -n "$DOCKER_VERSION" ]; then
     docker_run_options="$docker_run_options -v /var/run/docker.sock:/var/run/docker.sock"
 fi
 
-if [ -n "$PYTHON_TOOLS" ]; then
-    if [ -e $HOME/.aws ]; then
-        docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
-    fi
-    docker_run_options="$docker_run_options -e OPENAI_API_KEY"
-fi
-
 if [ -n "$TERRAFORM_VERSION" ]; then
     if [ -e $HOME/.aws ]; then
         docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
@@ -272,6 +242,12 @@ if [ -n "$EMACS_VERSION" ]; then
     fi
     if [ -e $HOME/.emacs.d ]; then
         docker_run_options="$docker_run_options -v $HOME/.emacs.d:$HOME/.emacs.d"
+    fi
+fi
+
+if [ -n "$ANYTOOLD_EXTDIR" ]; then
+    if [ -e $ANYTOOLD_EXTDIR/run-options.sh ]; then
+        . $ANYTOOLD_EXTDIR/run-options.sh
     fi
 fi
 

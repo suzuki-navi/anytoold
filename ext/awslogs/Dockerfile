@@ -1,0 +1,3 @@
+
+RUN pip install awslogs
+

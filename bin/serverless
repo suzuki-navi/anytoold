@@ -4,7 +4,8 @@ ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
 
 name=$(basename $0)
 
-export NODEJS_TOOLS=${NODEJS_TOOLS:-"*"}
+export ANYTOOLD_EXTDIR=$(cd $(dirname $0)/../ext/$name; pwd)
+export NODEJS_VERSION=${NODEJS_VERSION:-"*"}
 
 bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
 

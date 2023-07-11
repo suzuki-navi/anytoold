@@ -1,5 +1,0 @@
-
-RUN npm install -g serverless
-#RUN npm install -g serverless-step-functions
-#RUN npm install -g @vue/cli
-

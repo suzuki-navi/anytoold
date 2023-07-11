@@ -4,7 +4,8 @@ ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
 
 name=$(basename $0)
 
-export RUBY_TOOLS=${RUBY_TOOLS:-"*"}
+export ANYTOOLD_EXTDIR=$(cd $(dirname $0)/../ext/$name; pwd)
+export RUBY_VERSION=${RUBY_VERSION:-"*"}
 
 bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
 

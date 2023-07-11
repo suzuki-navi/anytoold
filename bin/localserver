@@ -4,10 +4,10 @@ ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
 
 name=$(basename $0)
 
-export PYTHON_TOOLS="*"
+export ANYTOOLD_EXTDIR=$(cd $(dirname $0)/../ext/$name; pwd)
+export PYTHON_VERSION=${PYTHON_VERSION:-"*"}
 
-port="$1"
-export docker_run_options="-p $port:$port"
+export PORT=$1
 
 bash $ANYTOOLD_PATH/docker-run.sh python /usr/local/localserver.py "$@"
 

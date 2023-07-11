@@ -4,7 +4,8 @@ ANYTOOLD_PATH=$(cd $(dirname $0)/..; pwd)
 
 name=$(basename $0)
 
-export PYTHON_TOOLS=${PYTHON_TOOLS:-"*"}
+export ANYTOOLD_EXTDIR=$(cd $(dirname $0)/../ext/$name; pwd)
+export PYTHON_VERSION=${PYTHON_VERSION:-"*"}
 
 bash $ANYTOOLD_PATH/docker-run.sh $name "$@"
 
