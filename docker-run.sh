@@ -148,8 +148,8 @@ fi
     cp entrypoint.sh var/$docker_image_name/
 
     if [ -n "$ANYTOOLD_EXTDIR" ]; then
-        for f in $(ls $ANYTOOLD_EXTDIR/* | grep -v Dockerfile); do
-            if ! diff $f var/$docker_image_name/ >/dev/null; then
+        for f in $(ls $ANYTOOLD_EXTDIR | grep -v Dockerfile); do
+            if [ ! -e var/$docker_image_name/$f ] && ! diff $f var/$docker_image_name/$f >/dev/null; then
                 cp $f var/$docker_image_name/
             fi
         done
