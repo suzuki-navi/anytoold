@@ -184,16 +184,26 @@ else
     term_opt="-i"
 fi
 
-docker_run_options=${docker_run_options:-}
+docker_run_options=(${docker_run_options:-})
 
-docker_run_options="$docker_run_options $term_opt -v $(pwd):$(pwd) -w $(pwd)"
+docker_run_options+=("$term_opt")
+docker_run_options+=("-v")
+docker_run_options+=("$(pwd):$(pwd)")
+docker_run_options+=("-w")
+docker_run_options+=("$(pwd)")
 
 # HOST_UID, HOST_GID, HOST_USER are referenced in entrypoint.sh
-docker_run_options="$docker_run_options -e HOST_UID=$uid -e HOST_GID=$gid -e HOST_USER=$user"
+docker_run_options+=("-e")
+docker_run_options+=("HOST_UID=$uid")
+docker_run_options+=("-e")
+docker_run_options+=("HOST_GID=$gid")
+docker_run_options+=("-e")
+docker_run_options+=("HOST_USER=$user")
 
 if [ -n "$TERRAFORM_VERSION" ]; then
     if [ -e $HOME/.aws ]; then
-        docker_run_options="$docker_run_options -v $HOME/.aws:$HOME/.aws"
+        docker_run_options+=("-v")
+        docker_run_options+=("$HOME/.aws:$HOME/.aws")
     fi
 fi
 
@@ -205,20 +215,26 @@ if [ -n "$project_home" ]; then
     # for npx
     if [ -n "$NODEJS_VERSION" ]; then
         mkdir -p $project_home/.npm/.anytoold
-        docker_run_options="$docker_run_options -v $project_home/.npm/.anytoold:$HOME/.npm"
+        docker_run_options+=("-v")
+        docker_run_options+=("$project_home/.npm/.anytoold:$HOME/.npm")
     fi
 
     if [ -n "$PYTHON_VERSION" ]; then
         mkdir -p $project_home/.venv/.anytoold
-        docker_run_options="$docker_run_options -v $project_home/.venv/.anytoold:$HOME/.local"
+        docker_run_options+=("-v")
+        docker_run_options+=("$project_home/.venv/.anytoold:$HOME/.local")
+        docker_run_options+=("-e")
+        docker_run_options+=("PATH_EXT=$HOME/.local/bin")
     fi
 
     # directory for persistant sbt cache
     if [ -n "$SBT_VERSION" ]; then
         mkdir -p $project_home/.sbt-docker-cache/.sbt
         mkdir -p $project_home.sbt-docker-cache/.cache
-        docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.sbt:$HOME/.sbt"
-        docker_run_options="$docker_run_options -v $project_home/.sbt-docker-cache/.cache:$HOME/.cache"
+        docker_run_options+=("-v")
+        docker_run_options+=("$project_home/.sbt-docker-cache/.sbt:$HOME/.sbt")
+        docker_run_options+=("-v")
+        docker_run_options+=("$project_home/.sbt-docker-cache/.cache:$HOME/.cache")
     fi
 fi
 
@@ -229,8 +245,8 @@ if [ -n "$ANYTOOLD_EXTDIR" ]; then
 fi
 
 if [ -n "$verbose" ]; then
-    echo docker run --rm $docker_run_options $docker_image_name bash /usr/local/entrypoint.sh "$@"
+    echo docker run --rm ${docker_run_options[@]} $docker_image_name bash /usr/local/entrypoint.sh "$@"
 fi
 
-docker run --rm $docker_run_options $docker_image_name bash /usr/local/entrypoint.sh "$@"
+docker run --rm "${docker_run_options[@]}" $docker_image_name bash /usr/local/entrypoint.sh "$@"
 

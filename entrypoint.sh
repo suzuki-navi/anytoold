@@ -25,6 +25,10 @@ usermod -aG sudo $HOST_USER
 export HOME=/home/$HOST_USER
 chown $HOST_USER $HOME
 
+if [ -n "${PATH_EXT:-}" ]; then
+    export PATH="$PATH_EXT:$PATH"
+fi
+
 # Execute the specified command
 if [ -z "$command" ]; then
     exit 1
