@@ -184,7 +184,7 @@ else
     term_opt="-i"
 fi
 
-docker_run_options=(${docker_run_options:-})
+docker_run_options=()
 
 docker_run_options+=("$term_opt")
 docker_run_options+=("-v")
@@ -199,6 +199,12 @@ docker_run_options+=("-e")
 docker_run_options+=("HOST_GID=$gid")
 docker_run_options+=("-e")
 docker_run_options+=("HOST_USER=$user")
+
+if [ -n "${PORT:-}" ]; then
+    docker_run_options+=("-p")
+    docker_run_options+=("$PORT:$PORT")
+fi
+
 
 if [ -n "$TERRAFORM_VERSION" ]; then
     if [ -e $HOME/.aws ]; then
