@@ -173,6 +173,10 @@ fi
     fi
 ) >&2
 
+project_home=$(
+    bash $(dirname $0)/search-project-home-dir.sh
+)
+
 # To inherit the user ID and group ID of the host inside Docker
 user=$(whoami)
 uid=$(id -u $user)
@@ -188,7 +192,11 @@ docker_run_options=()
 
 docker_run_options+=("$term_opt")
 docker_run_options+=("-v")
-docker_run_options+=("$(pwd):$(pwd)")
+if [ -n "$project_home" ]; then
+    docker_run_options+=("$project_home:$project_home")
+else
+    docker_run_options+=("$(pwd):$(pwd)")
+fi
 docker_run_options+=("-w")
 docker_run_options+=("$(pwd)")
 
@@ -213,10 +221,6 @@ if [ -n "$TERRAFORM_VERSION" ]; then
     fi
 fi
 
-project_home=$(
-    bash $(dirname $0)/search-project-home-dir.sh
-)
-
 if [ -n "$project_home" ]; then
     # for npx
     if [ -n "$NODEJS_VERSION" ]; then
@@ -236,7 +240,7 @@ if [ -n "$project_home" ]; then
     # directory for persistant sbt cache
     if [ -n "$SBT_VERSION" ]; then
         mkdir -p $project_home/.sbt-docker-cache/.sbt
-        mkdir -p $project_home.sbt-docker-cache/.cache
+        mkdir -p $project_home/.sbt-docker-cache/.cache
         docker_run_options+=("-v")
         docker_run_options+=("$project_home/.sbt-docker-cache/.sbt:$HOME/.sbt")
         docker_run_options+=("-v")
